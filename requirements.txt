@@ -3,5 +3,3 @@ python-telegram-bot==22.1
 youtube_transcript_api==1.0.3
 cerebras_cloud_sdk==1.35.0
 python-dotenv==1.1.0
-python-telegram-bot==22.1
-python-telegram-bot==1.0.3
