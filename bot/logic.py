@@ -1,6 +1,7 @@
 import os
 import re
 from typing import Optional, List, Dict
+from apify_client import ApifyClient
 from cerebras.cloud.sdk import Cerebras
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
@@ -27,18 +28,46 @@ def extract_video_id(url: str) -> str:
 
 # --- Transcript Retrieval and Processing ---
 
-def fetch_transcript(video_id: str) -> Optional[List[Dict[str, str]]]:
+def fetch_transcript(video_url: str) -> Optional[List[Dict[str, str]]]:
+    # Initialize the ApifyClient with your API token
+    api_token = os.getenv("APIFY_KEY")
+    client = ApifyClient(api_token)
+
+    # Prepare the input for the Actor
+    run_input = {"videoUrl": video_url}
+
     try:
-        return YouTubeTranscriptApi.get_transcript(video_id)
-    except (TranscriptsDisabled, NoTranscriptFound, Exception):
-        # Add comprehensive details as to what has happened
-        print(f"Transcript not available for video ID: {video_id}")
-        print(Exception)
+        # Run the Actor and wait for it to finish
+        run = client.actor("faVsWy9VTSNVIhWpR").call(run_input=run_input)
+
+        # Fetch results from the run's dataset
+        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        if not items:
+            print(f"No transcript found for video url: {video_url}")
+            return None
+
+        # Return the transcript (usually a list of dicts with text and timing)
+        return items
+
+    except Exception as e:
+        print(f"Error fetching transcript for video url: {video_url} -> {e}")
         return None
 
-def format_transcript(transcript: List[Dict[str, str]], max_chars: int = 5000) -> str:
-    full_text = " ".join(entry.get('text', '') for entry in transcript)
-    return full_text[:max_chars].strip()
+def format_transcript(transcript_container: List[Dict[str, List[Dict[str, str]]]], max_chars: int = 5000) -> str:
+    if not transcript_container:
+        return ""
+
+    # Extract the 'data' list from the first element of the outer list
+    data = transcript_container[0].get('data', [])
+
+    # Join all 'text' fields into one string separated by spaces
+    full_text = " ".join(entry.get('text', '') for entry in data).strip()
+
+    # Simple truncation (cut off at max_chars)
+    if len(full_text) > max_chars:
+        full_text = full_text[:max_chars].rstrip()
+
+    return full_text
 
 
 # --- Prompt Generation ---
