@@ -25,7 +25,9 @@ This project demonstrates practical skills in Python, Telegram Bot API integrati
 
 ## Deployment
 
-The bot is deployed on the cloud for reliable 24/7 availability. You can try it live on Telegram at [@ibrhr_youtube_summarizer_bot](https://t.me/ibrhr_youtube_summarizer_bot).
+The app is currently not deployed. Therefore the bot is unavailable.
+
+~~The bot is deployed on the cloud for reliable 24/7 availability. You can try it live on Telegram at [@ibrhr_youtube_summarizer_bot](https://t.me/ibrhr_youtube_summarizer_bot).~~
 
 ## Future Directions
 
